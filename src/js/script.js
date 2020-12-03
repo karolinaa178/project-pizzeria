@@ -162,22 +162,16 @@
               // add option price to price variable
               price += option.price;
             }
-          } else {
-            // check if the option is default
-            if(option.default == true){
-              //reduce price variable
-              price -= option.price;
-            }
-            const image = thisProduct.imageWrapper.querySelector('.' + paramId + '-' + optionId);
-            //if(image){
-            if(optionSelected && image !== null){
-              image.classList.add(classNames.menuProduct.imageVisible);
-            } else if(!optionSelected && image !== null){
-              image.classList.remove(classNames.menuProduct.imageVisible);
-            }
-            //}
+          } else if(option.default == true){
+            //reduce price variable
+            price -= option.price;
           }
-
+          const image = thisProduct.imageWrapper.querySelector('.' + paramId + '-' + optionId);
+          if(optionSelected && image !== null){
+            image.classList.add(classNames.menuProduct.imageVisible);
+          } else if(!optionSelected && image !== null){
+            image.classList.remove(classNames.menuProduct.imageVisible);
+          }
         }
 
         // update calculated price in the HTML
