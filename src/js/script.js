@@ -195,8 +195,8 @@
       const thisWidget = this;
 
       thisWidget.getElements(element);
-      //thisWidget.value = (settings.amountWidget.defaultValue);
-      thisWidget.setValue(settings.amountWidget.defaultValue);
+      thisWidget.value = settings.amountWidget.defaultValue;
+      thisWidget.setValue(thisWidget.input.value);
       thisWidget.initActions();
 
       console.log('AmountWidget:', thisWidget);
