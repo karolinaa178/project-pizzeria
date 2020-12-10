@@ -92,6 +92,7 @@
 
       thisProduct.id = id;
       thisProduct.data = data;
+
       thisProduct.renderInMenu();
       thisProduct.getElements();
       thisProduct.initAccordion();
@@ -177,7 +178,7 @@
 
       // set price to default price
       let price = thisProduct.data.price;
-      // thisProduct.priceSingle = thisProduct.data.price;
+      thisProduct.priceSingle = thisProduct.data.price;
 
       // for every category (param)...
       for(let paramId in thisProduct.data.params) {
@@ -185,48 +186,39 @@
         const param = thisProduct.data.params[paramId];
         console.log(paramId, param);
 
-        for(let paramId in thisProduct.data.params) {
-          // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
-          const param = thisProduct.data.params[paramId];
-          console.log(paramId, param);
-
-          // for every option in this category
-          for(let optionId in param.options) {
-            // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
-            const option = param.options[optionId];
-            const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
-            console.log(optionId, option);
+        // for every option in this category
+        for(let optionId in param.options) {
+          // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+          const option = param.options[optionId];
+          const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
+          console.log(optionId, option);
+          if (optionSelected) {
+            if (!option.default == true) {
+              price = price + option.price;
+            }
+          }
+          else {
+            if (option.default == true) {
+              price = price - option.price;
+            }
+          }
+          const optionImages = thisProduct.imageWrapper.querySelectorAll('.' + paramId + '-' + optionId);
+          for (let optionImage of optionImages) {
             if (optionSelected) {
-              if (!option.default == true) {
-                price = price + option.price;
-              }
+              optionImage.classList.add(classNames.menuProduct.imageVisible);
             }
             else {
-              if (option.default == true) {
-                price = price - option.price;
-              }
-            }
-            const optionImages = thisProduct.imageWrapper.querySelectorAll('.' + paramId + '-' + optionId);
-            for (let optionImage of optionImages) {
-              if (optionSelected) {
-                optionImage.classList.add(classNames.menuProduct.imageVisible);
-              }
-              else {
-                optionImage.classList.remove(classNames.menuProduct.imageVisible);
-              }
+              optionImage.classList.remove(classNames.menuProduct.imageVisible);
             }
           }
         }
       }
-      thisProduct.priceSingle = thisProduct.data.price;
-      /* multiply price by amount */
+      //update calculated price in the HTML
       price *= thisProduct.amountWidget.value;
 
       thisProduct.priceMulti = price;
-      // update calculated price in the HTML
       thisProduct.priceElem.innerHTML = price;
     }
-
     initAmountWidget(){
       const thisProduct = this;
       thisProduct.amountWidget = new AmountWidget(thisProduct.amountWidgetElem);
@@ -267,7 +259,7 @@
 
         // create category param in params const eg params...
         params[paramId] = {
-          name: param.label,
+          label: param.label,
           options: {}
         };
         //for every option in category
