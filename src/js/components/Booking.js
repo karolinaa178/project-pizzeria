@@ -1,5 +1,5 @@
 import {templates, select, settings, classNames} from './../settings.js';
-import utils from './../utils.js';
+import utils from '../utils.js';
 import AmountWidget from './AmountWidget.js';
 import DatePicker from './DatePicker.js';
 import HourPicker from './HourPicker.js';
@@ -8,6 +8,7 @@ class Booking{
   constructor(element){
     const thisBooking = this;
 
+    thisBooking.selectedTable = null;
     thisBooking.render(element);
     thisBooking.initWidgets();
     thisBooking.getData();
@@ -48,10 +49,11 @@ class Booking{
       fetch(urls.eventsCurrent),
       fetch(urls.eventsRepeat),
     ])
-      .then(function(allResponses){
-        const bookingsResponse = allResponses[0];
-        const eventsCurrentResponse = allResponses[1];
-        const eventsRepeatResponse = allResponses[2];
+      .then(function([
+        bookingsResponse,
+        eventsCurrentResponse,
+        eventsRepeatResponse,
+      ]){
         return Promise.all([
           bookingsResponse.json(),
           eventsCurrentResponse.json(),
@@ -71,6 +73,10 @@ class Booking{
 
     thisBooking.booked = {};
 
+    for(let item of bookings){
+      thisBooking.makeBooked(item.date, item.hour, item.duration, item.table);
+    }
+
     for(let item of eventsCurrent){
       thisBooking.makeBooked(item.date, item.hour, item.duration, item.table);
     }
@@ -80,12 +86,11 @@ class Booking{
 
     for(let item of eventsRepeat){
       if(item.repeat == 'daily'){
-        for(let loopDate = minDate; loopDate <=maxDate; loopDate = utils.addDays(loopDate, 1)){
-          thisBooking.makeBooked(utils.dateToStr(loopDate), item.date, item.hour, item.duration, item.table);
+        for(let loopDate = minDate; loopDate <= maxDate; loopDate = utils.addDays(loopDate, 1)){
+          thisBooking.makeBooked(utils.dateToStr(loopDate), item.hour, item.duration, item.table);
         }
       }
     }
-
     //console.log('thisBooking.booked', thisBooking.booked);
 
     thisBooking.updateDOM();
@@ -129,7 +134,7 @@ class Booking{
     for(let table of thisBooking.dom.tables){
       let tableId = table.getAttribute(settings.booking.tableIdAttribute);
       if(!isNaN(tableId)){
-        tableId - parseInt(tableId);
+        tableId = parseInt(tableId);
       }
 
       if(
@@ -157,7 +162,7 @@ class Booking{
     thisBooking.dom.hourPicker = thisBooking.dom.wrapper.querySelector(select.hourPicker.wrapper);
 
     thisBooking.dom.tables = thisBooking.dom.wrapper.querySelectorAll(select.booking.tables);
-
+    thisBooking.dom.tablesAll = thisBooking.dom.wrapper.querySelector(select.booking.tablesAll);
   }
 
   initWidgets(){
@@ -175,10 +180,53 @@ class Booking{
     thisBooking.datePicker = new DatePicker(thisBooking.dom.datePicker);
     thisBooking.hourPicker = new HourPicker(thisBooking.dom.hourPicker);
 
-    thisBooking.dom.wrapper.addEventListener('updated', function(){
-      thisBooking.updateDOM();
+    thisBooking.dom.tablesAll.addEventListener('click', function(event){
+      event.preventDefault();
+      thisBooking.changeEvent = event;
+      thisBooking.bookTable(event);
     });
 
+    thisBooking.dom.wrapper.addEventListener('updated', function(){
+      thisBooking.updateDOM();
+      thisBooking.initTables();
+    });
+  }
+
+  initTables(){
+    const thisBooking = this;
+
+    for(let table of thisBooking.dom.tables){
+      if(table.classList.contains(classNames.booking.tableSelected)){
+        table.classList.remove(classNames.booking.tableSelected);
+      }
+    }
+    thisBooking.selectedTable = null;
+  }
+
+  bookTable(event){
+    const thisBooking = this;
+
+    const clickedElement = event.target;
+    if(clickedElement.classList.contains(classNames.booking.table)){
+      const tableNumber = clickedElement.getAttribute('data-table');
+
+      if(!clickedElement.classList.contains(classNames.booking.tableBooked)
+      && !clickedElement.classList.contains(classNames.booking.tableSelected))
+      { thisBooking.initTables();
+        clickedElement.classList.add(classNames.booking.tableSelected);
+        thisBooking.selectedTable = tableNumber;
+      }
+      else if(!clickedElement.classList.contains(classNames.booking.tableBooked)
+      && clickedElement.classList.containis(classNames.booking.tableSelected))
+      {
+        clickedElement.classList.remove(classNames.booking.tableSelected);
+        thisBooking.selectedTable = 0;
+      }
+      else if(clickedElement.classList.contains(classNames.booking.tableBooked))
+      {
+        alert('This table has already been booked. Please choose different table.');
+      }
+    }
   }
 
 }
