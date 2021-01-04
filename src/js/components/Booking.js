@@ -255,7 +255,7 @@ class Booking{
     const payload ={
       date: thisBooking.datePicker.value,
       hour: thisBooking.hourPicker.value,
-      table: thisBooking.selectedTable,
+      table: parseInt(thisBooking.selectedTable),
       duration: thisBooking.hoursAmountWidget.value,
       ppl: thisBooking.peopleAmountWidget.value,
       starters: [],
@@ -278,8 +278,9 @@ class Booking{
     };
 
     fetch(url, options)
-      .then(thisBooking.makeBooked(payload.date, payload.hour, payload.duration, payload.table));
-    console.log(thisBooking.booked);
+      .then(thisBooking.makeBooked(payload.date, payload.hour, payload.duration, parseInt(payload.table)))
+      .then(console.log(thisBooking.booked))
+      .then(location.reload());
   }
 
 }
